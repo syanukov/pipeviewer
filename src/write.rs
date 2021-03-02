@@ -1,8 +1,8 @@
+use crossbeam::channel;
 use std::fs::File;
 use std::io::{self, BufWriter, ErrorKind, Result, Write};
-use std::sync::mpsc::Receiver;
 
-pub fn write_loop(outfile: &str, write_rx: Receiver<Vec<u8>>) -> Result<()> {
+pub fn write_loop(outfile: &str, write_rx: channel::Receiver<Vec<u8>>) -> Result<()> {
     let mut writer: Box<dyn Write> = if !outfile.is_empty() {
         Box::new(BufWriter::new(File::create(outfile)?))
     } else {
