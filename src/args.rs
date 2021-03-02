@@ -1,5 +1,5 @@
-use std::env;
 use clap::{App, Arg};
+use std::env;
 
 pub struct Args {
     pub infile: String,
@@ -33,7 +33,7 @@ impl Args {
         Self {
             infile,
             outfile,
-            silent
+            silent,
         }
     }
 }

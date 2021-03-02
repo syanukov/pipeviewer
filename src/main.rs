@@ -1,18 +1,22 @@
 use std::io::Result;
-use std::sync::{Arc, Mutex};
+use std::sync::mpsc;
 use std::thread;
 
 use pipeviewer::{args::Args, read, stats, write};
 
 fn main() -> Result<()> {
-    let Args { infile, outfile, silent } = Args::parse();
+    let Args {
+        infile,
+        outfile,
+        silent,
+    } = Args::parse();
 
-    let quit = Arc::new(Mutex::new(false));
-    let (quit1, quit2, quit3) = (Arc::clone(&quit), Arc::clone(&quit), Arc::clone(&quit));
+    let (stats_tx, stats_rx) = mpsc::channel();
+    let (write_tx, write_rx) = mpsc::channel();
 
-    let read_handle = thread::spawn(move || read::read_loop(&infile, quit1));
-    let write_handle = thread::spawn(move || write::write_loop(&outfile, quit2));
-    let stats_handle = thread::spawn(move || stats::stats_loop(silent, quit3));
+    let read_handle = thread::spawn(move || read::read_loop(&infile, stats_tx));
+    let write_handle = thread::spawn(move || write::write_loop(&outfile, write_rx));
+    let stats_handle = thread::spawn(move || stats::stats_loop(silent, stats_rx, write_tx));
 
     let read_io_result = read_handle.join().unwrap();
     let write_io_result = write_handle.join().unwrap();
